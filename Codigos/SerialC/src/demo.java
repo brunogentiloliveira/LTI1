@@ -3,18 +3,21 @@ import jssc.SerialPortEvent;
 import jssc.SerialPortException;
 import jssc.SerialPortList;
 
+import javax.swing.text.html.parser.Parser;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
+import java.util.Scanner;
 
 public class demo { //Recebe Strings da porta serie, enviadas pelo arduino
 
-    static String filePath = "/home/moutinho/Desktop/teste.jpeg";
-    static File file = new File(filePath);
+    static byte[] buffer = new byte[49];
 
-    public void connect(String portname) { //le da porta c/ name = 'portname'
+    public  void connect(String portname) { //le da porta c/ name = 'portname'
+
 
         SerialPort port = new SerialPort(portname);
         try {
@@ -31,50 +34,58 @@ public class demo { //Recebe Strings da porta serie, enviadas pelo arduino
 
             port.addEventListener((SerialPortEvent event)->{
 
-                if(event.isRXCHAR()) { //ver event.isRXCHAR ()
+                if(event.isRXCHAR()) { //ver event.isRXCHAR () //Definir tempo á espera de receber da serial Port ****
 
-                    try {
-                       byte[] str = port.readBytes();
-                       // Path path = Paths.get("/home/moutinho/Desktop/teste.jpg");
-                       // Files.write(path, bytesFile);
-                       // String s = port.readString();
+                        try {
 
+                            buffer = port.readBytes();
 
-                        OutputStream os = new FileOutputStream(file);
-                        os.write(str);
-                      //  os.write(b);
-                        os.close();
+                            String s = new String(buffer, StandardCharsets.UTF_8);
+                         
+                            System.out.print(s);
+                            Files.createFile(Paths.get("/home/moutinho/Desktop/teste.txt"));
+                            Files.write(Paths.get("/home/moutinho/Desktop/teste.txt"), s.getBytes(),StandardOpenOption.APPEND);
 
 
-                    } catch (SerialPortException | IOException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
+
+
+                        } catch (SerialPortException | IOException e) {
+                            // TODO Auto-generated catch block
+                            e.printStackTrace();
+                        }
                     }
 
-                }
+
+
 
             });
+
 
         } catch (SerialPortException e ) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
+
+
     }
 
-    public static void main(String[] args) {
+
+    public static void main(String[] args) throws IOException {
 
         //array strings p/ guardar todas as portas
-        String[] portlist = SerialPortList.getPortNames(); //Falta corrigir quando arduino desconectado
+        String[] portlist = SerialPortList.getPortNames();
 
         for (String s : portlist) {
             System.out.println(s);
         }
 
         demo obj = new demo();
-        obj.connect(portlist[0]);
+        obj.connect("/dev/tnt0");
+
 
 
 
     }
 
 }
+

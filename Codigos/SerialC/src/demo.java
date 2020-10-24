@@ -41,8 +41,9 @@ public class demo { //Recebe Strings da porta serie, enviadas pelo arduino
                             buffer = port.readBytes();
 
                             String s = new String(buffer, StandardCharsets.UTF_8);
-                         
+                        
                             System.out.print(s);
+                            Files.deleteIfExists(Paths.get("/home/moutinho/Desktop/teste.txt")); //Falta so meter isto mais bonito e declarar uma variavel para o PATH
                             Files.createFile(Paths.get("/home/moutinho/Desktop/teste.txt"));
                             Files.write(Paths.get("/home/moutinho/Desktop/teste.txt"), s.getBytes(),StandardOpenOption.APPEND);
 

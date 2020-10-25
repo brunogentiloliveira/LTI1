@@ -17,12 +17,6 @@ public class demo {
 
     static byte[] buffer;
 
-    private static final byte[] PNG_HEADER = new byte[] {
-            (byte) 0x89,
-            'P', 'N', 'G',
-            (byte) 0x0D, (byte) 0x0A, (byte) 0x1A, (byte) 0x0A
-    };
-
     public  void connect(String portname) throws IOException {
 
         SerialPort port = new SerialPort(portname);

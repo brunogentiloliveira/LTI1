@@ -3,18 +3,27 @@ import jssc.SerialPortEvent;
 import jssc.SerialPortException;
 import jssc.SerialPortList;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
-public class demo { //Recebe Strings da porta serie, enviadas pelo arduino
+public class demo {
 
-    static byte[] buffer = new byte[49];
+    static byte[] buffer;
 
-    public  void connect(String portname) { //le da porta c/ name = 'portname'
+    private static final byte[] PNG_HEADER = new byte[] {
+            (byte) 0x89,
+            'P', 'N', 'G',
+            (byte) 0x0D, (byte) 0x0A, (byte) 0x1A, (byte) 0x0A
+    };
+
+    public  void connect(String portname) throws IOException {
 
         SerialPort port = new SerialPort(portname);
         try {
@@ -27,59 +36,59 @@ public class demo { //Recebe Strings da porta serie, enviadas pelo arduino
                     SerialPort.PARITY_NONE
 
             );
-            port.addEventListener((SerialPortEvent event)->{
+            Files.deleteIfExists(Paths.get("/home/moutinho/Desktop/teste.txt"));
 
-                if(event.isRXCHAR()) { //ver event.isRXCHAR () //Definir tempo á espera de receber da serial Port ****
+            port.addEventListener((SerialPortEvent event) -> {
 
-                        try {
-                            buffer = port.readBytes();
+                if (event.isRXCHAR()) { //ver event.isRXCHAR () //Definir tempo á espera de receber da serial Port ****
 
-                            String s = new String(buffer, StandardCharsets.UTF_8);
-                            System.out.print(s);
+                    try {
+                        buffer = port.readBytes();
 
-                            if(Files.exists(Paths.get("/home/moutinho/Desktop/teste.txt"))){
-                                //Files.write(Paths.get("/home/moutinho/Desktop/teste.txt"), "".getBytes(),StandardOpenOption.WRITE);
-                                Files.write(Paths.get("/home/moutinho/Desktop/teste.txt"), s.getBytes(),StandardOpenOption.APPEND);
-                            }else{
-                                Files.createFile(Paths.get("/home/moutinho/Desktop/teste.txt"));
-                                Files.write(Paths.get("/home/moutinho/Desktop/teste.txt"), s.getBytes(),StandardOpenOption.APPEND);
-                            }
 
-                        } catch (SerialPortException | IOException e) {
-                            // TODO Auto-generated catch block
-                            e.printStackTrace();
+                        if (Files.exists(Paths.get("/home/moutinho/Desktop/teste.txt"))) {
+                            Files.write(Paths.get("/home/moutinho/Desktop/teste.txt"), buffer, StandardOpenOption.APPEND);
+                        } else {
+                            Files.createFile(Paths.get("/home/moutinho/Desktop/teste.txt"));
+                            Files.write(Paths.get("/home/moutinho/Desktop/teste.txt"), buffer, StandardOpenOption.APPEND);
                         }
+
+                    } catch (SerialPortException | IOException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
                     }
-
-
-
+                }
 
             });
 
-
-        } catch (SerialPortException e ) {
+        } catch (SerialPortException | IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
 
 
-    }
 
+
+    }
+    public void savePng() throws IOException { //Faz a conversao corretamente mas tem de se arranjar ainda PARA IMAGENS
+
+        System.out.println("Ficheiro Imagem Recebido");
+        File f = new File("/home/moutinho/Desktop/received.png");
+        byte[] aux = Files.readAllBytes(Paths.get("/home/moutinho/Desktop/teste.txt"));
+        ByteArrayInputStream in = new ByteArrayInputStream(aux);
+        BufferedImage img ;
+        img = ImageIO.read(in);
+        ImageIO.write(img,"png", f);
+
+    }
 
     public static void main(String[] args) throws IOException {
 
-        //array strings p/ guardar todas as portas
         String[] portlist = SerialPortList.getPortNames();
 
-        for (String s : portlist) {
-            System.out.println(s);
-        }
-
+        System.out.println("Listening Serialport " +portlist[0]+ " :");
         demo obj = new demo();
         obj.connect(portlist[0]);
-
-
-
 
     }
 

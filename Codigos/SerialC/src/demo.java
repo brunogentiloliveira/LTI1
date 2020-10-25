@@ -6,18 +6,17 @@ import jssc.SerialPortList;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.concurrent.atomic.AtomicInteger;
+
 
 
 public class demo {
-
+    public static final String pathTXT_toWrite = "/home/moutinho/Desktop/teste.txt";
     static byte[] buffer;
 
-    public  void connect(String portname) throws IOException {
+    public  void connect(String portname) {
 
         SerialPort port = new SerialPort(portname);
         try {
@@ -30,8 +29,8 @@ public class demo {
                     SerialPort.PARITY_NONE
 
             );
-            Files.deleteIfExists(Paths.get("/home/moutinho/Desktop/teste.txt"));
 
+            Files.deleteIfExists(Paths.get(pathTXT_toWrite));
             port.addEventListener((SerialPortEvent event) -> {
 
                 if (event.isRXCHAR()) { //ver event.isRXCHAR () //Definir tempo á espera de receber da serial Port ****
@@ -39,13 +38,10 @@ public class demo {
                     try {
                         buffer = port.readBytes();
 
-
-                        if (Files.exists(Paths.get("/home/moutinho/Desktop/teste.txt"))) {
-                            Files.write(Paths.get("/home/moutinho/Desktop/teste.txt"), buffer, StandardOpenOption.APPEND);
-                        } else {
-                            Files.createFile(Paths.get("/home/moutinho/Desktop/teste.txt"));
-                            Files.write(Paths.get("/home/moutinho/Desktop/teste.txt"), buffer, StandardOpenOption.APPEND);
+                        if (!Files.exists(Paths.get(pathTXT_toWrite))) {
+                            Files.createFile(Paths.get(pathTXT_toWrite));
                         }
+                        Files.write(Paths.get(pathTXT_toWrite), buffer, StandardOpenOption.APPEND);
 
                     } catch (SerialPortException | IOException e) {
                         // TODO Auto-generated catch block
@@ -68,7 +64,7 @@ public class demo {
 
         System.out.println("Ficheiro Imagem Recebido");
         File f = new File("/home/moutinho/Desktop/received.png");
-        byte[] aux = Files.readAllBytes(Paths.get("/home/moutinho/Desktop/teste.txt"));
+        byte[] aux = Files.readAllBytes(Paths.get(pathTXT_toWrite));
         ByteArrayInputStream in = new ByteArrayInputStream(aux);
         BufferedImage img ;
         img = ImageIO.read(in);
@@ -83,6 +79,7 @@ public class demo {
         System.out.println("Listening Serialport " +portlist[0]+ " :");
         demo obj = new demo();
         obj.connect(portlist[0]);
+        //obj.savePng();
 
     }
 

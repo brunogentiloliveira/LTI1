@@ -82,7 +82,9 @@ public class demo {
 
     }
     /*Faz tudo direito, recebe e cria uma png| CORRIGIR -> lança IOException na leitura dos bytes do txt 
-    "Error reading PNG metadata" mas o programa continua já com a png guardada/criada */
+    "Error reading PNG metadata" mas o programa continua já com a png guardada/criada 
+    Ta a acrescentar bytes á imagem original e é por isso que lança a IOException
+    */
     
     public void savePng() throws IOException { 
 

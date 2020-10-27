@@ -1,22 +1,15 @@
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.CharsetDecoder;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.Scanner;
-
-import com.sun.xml.internal.messaging.saaj.util.Base64;
 import jssc.SerialPort;
 import jssc.SerialPortException;
 import jssc.SerialPortList;
-
 import javax.imageio.ImageIO;
-import javax.swing.*;
+
 
 public class SerialCommunication{
     public static void main(String[] args) throws SerialPortException, IOException {
@@ -32,7 +25,7 @@ public class SerialCommunication{
             case 0:
                 System.exit(0);
                 break;
-            case 1:            
+            case 1:
                 formato = ".txt";
                 sendTextFile(formato, portlist[1]);
                 break;
@@ -65,6 +58,8 @@ public class SerialCommunication{
         byte[] buff = baos.toByteArray();
         serialPort.writeBytes(buff);
 
+
+        //System.out.println("Ficheiro enviado: "+s);
 
     }
 }

@@ -27,11 +27,13 @@ public class SerialCommunication{
                 break;
             case 1:
                 formato = ".txt";
-                sendTextFile(formato, portlist[1]);
+                sendTextFile(formato, "/dev/ttyUSB1");
+              //  sendTextFile(formato, "/dev/tnt1");
                 break;
             case 2:
                 formato = ".png";
-                sendImageFile(formato, portlist[1]);
+                sendImageFile(formato, "/dev/ttyUSB1");
+               // sendImageFile(formato, "/dev/tnt1");
                 break;
         }
 
@@ -57,9 +59,6 @@ public class SerialCommunication{
         ImageIO.write(img, "png", baos);
         byte[] buff = baos.toByteArray();
         serialPort.writeBytes(buff);
-
-
-        //System.out.println("Ficheiro enviado: "+s);
 
     }
 }

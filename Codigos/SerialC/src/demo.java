@@ -6,22 +6,26 @@ import jssc.SerialPortList;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 
 public class demo {
-    public static final String pathTXT_toWrite = "/home/moutinho/Desktop/teste.txt";
-    static byte[] buffer;
 
-    public  void connect(String portname) throws IOException {
-        String aux = "";
+    static byte[] buffer;
+    public ArrayList<byte[]> lista;
+
+    public demo(){
+        this.lista = new ArrayList<byte[]>();
+    }
+
+    public  void connect(String portname){
 
         SerialPort port = new SerialPort(portname);
+
         try {
             port.openPort();
             port.setParams(
@@ -33,79 +37,73 @@ public class demo {
 
             );
 
-            Files.deleteIfExists(Paths.get(pathTXT_toWrite));
-            port.addEventListener((SerialPortEvent event) -> {
 
+            port.addEventListener((SerialPortEvent event) -> {
                 if (event.isRXCHAR()) { //ver event.isRXCHAR () //Definir tempo á espera de receber da serial Port ****
 
                     try {
                         buffer = port.readBytes();
+                        lista.add(buffer);
+                        System.out.println(lista.size());
 
-                        if (!Files.exists(Paths.get(pathTXT_toWrite))) {
-                            Files.createFile(Paths.get(pathTXT_toWrite));
-                        }
-                        Files.write(Paths.get(pathTXT_toWrite), buffer, StandardOpenOption.APPEND);
-                        checkFormat();
-                        
+                       if(lista.size() == 6){ // DEPENDE DO TAMANHO DO FICHEIRO(TAMANHO / 3)
+                           saveFILE();
+                       }
+
                     } catch (SerialPortException | IOException e) {
                         // TODO Auto-generated catch block
                         e.printStackTrace();
                     }
                 }
-
             });
 
         } catch (SerialPortException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
-
-
-
-
     }
-    /*
-    Verifica se o conteudo do ficheiro (bytes lidos da serialPort) contem a String PNG
-    Podemos fazer o mesmo para os outros formatos
-    */
-    public void checkFormat() throws IOException {
+    public void saveFILE() throws IOException {
+            int j = 0;
+             ArrayList<Byte> byteList = new ArrayList<Byte>();
 
-        byte[] aux = Files.readAllBytes(Paths.get(pathTXT_toWrite));
-        String s = new String(aux, StandardCharsets.UTF_8);
-        if(s.contains("PNG")){
-            System.out.println("PNG FOI ENCONTRADO FILHOTE");
-            savePng();
-        }else{
-            System.out.println("TXT CRIADO FILHOTE");
-        }
+            for(byte[] b: lista){
+                for (byte value : b) {
+                    byteList.add(value);
+                }
+            }
 
+            byte[] buff = new byte[byteList.size()];
+            while(!byteList.isEmpty() && j < byteList.size()){
+                buff[j] = byteList.get(j);
+                j++;
+            }
 
+            String s = new String(buff, StandardCharsets.US_ASCII);
+
+            if(s.contains("PNG")){
+                System.out.println("PNG CARALHO");
+                Files.deleteIfExists(Paths.get("/home/moutinho/Desktop/received.png"));
+                File f = new File("/home/moutinho/Desktop/received.png");
+                ByteArrayInputStream in = new ByteArrayInputStream(buff);
+                BufferedImage img ;
+                img = ImageIO.read(in);
+                ImageIO.write(img,"png", f);
+                System.out.println("Ficheiro PNG recebido com sucesso");
+            }else{
+                System.out.println("TXT CARALHO");
+                Files.deleteIfExists(Paths.get("/home/moutinho/Desktop/received.txt"));
+                Files.createFile(Paths.get("/home/moutinho/Desktop/received.txt"));
+                Files.write(Paths.get("/home/moutinho/Desktop/received.txt"),buff);
+            }
+        System.exit(0);
     }
-    /*Faz tudo direito, recebe e cria uma png| CORRIGIR -> lança IOException na leitura dos bytes do txt 
-    "Error reading PNG metadata" mas o programa continua já com a png guardada/criada 
-    Ta a acrescentar bytes á imagem original e é por isso que lança a IOException
-    */
-    
-    public void savePng() throws IOException { 
 
-        File f = new File("/home/moutinho/Desktop/received.png");
-        byte[] aux = Files.readAllBytes(Paths.get(pathTXT_toWrite));
-        ByteArrayInputStream in = new ByteArrayInputStream(aux);
-        BufferedImage img ;
-        img = ImageIO.read(in);
-        ImageIO.write(img,"png", f);
-
-    }
-
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args){
 
         String[] portlist = SerialPortList.getPortNames();
-
-       // System.out.println("Listening Serialport " +portlist[0]+ " :");
+        System.out.println("Listening Serialport " +portlist[0]+ " :");
         demo obj = new demo();
-        obj.connect("/dev/tnt0");
-
-
+        obj.connect(portlist[0]);
     }
 
 }

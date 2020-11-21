@@ -32,7 +32,7 @@ void loop()  {
     while (myRadio.available()){
       myRadio.read( &data, sizeof(data) );
     }
-    Serial.println(data.text);
+    Serial.print(data.text);
   }
 
 

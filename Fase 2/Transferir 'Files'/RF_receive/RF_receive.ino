@@ -6,8 +6,8 @@ byte addresses[][6] = {"0"};
 
 struct package {
   uint16_t seq;
-  char  payload[300];
-  uint8_t crc;
+  byte  payload[29];
+  uint8_t crc;  
 };
 
 typedef struct package Package;
@@ -34,11 +34,16 @@ void loop()  {
     while (myRadio.available()){
       myRadio.read( &data, sizeof(data) );
     }
+         
     Serial.print("\nRecebido");
     Serial.print("\nPacote:");
     Serial.print(data.seq);
     Serial.print("\n");
-    Serial.println(data.payload);
+    Serial.println((char*)data.payload);
+    Serial.print("CRC:");
     Serial.println(data.crc);
+    
+    
+    
   }
 }

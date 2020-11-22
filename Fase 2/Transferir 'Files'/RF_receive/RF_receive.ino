@@ -42,8 +42,9 @@ void loop()  {
     Serial.println((char*)data.payload);
     Serial.print("CRC:");
     Serial.println(data.crc);
-    
-    
-    
+   
+      
+  
   }
+ 
 }

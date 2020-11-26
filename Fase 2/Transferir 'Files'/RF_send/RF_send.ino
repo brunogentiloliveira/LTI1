@@ -10,13 +10,13 @@
 
 
 RF24 myRadio (0, 5);
-byte addresses[][6] = {"0"};
-uint16_t counter;
+byte addresses[][6] = {"0", "1"};
+uint16_t counter = 0;
 char array_file[29000];
-char aux[50];
 int role = 0; // P/ ativar a transmissao quando quiser 
 unsigned long start_time;
-
+unsigned long elapsedss_time;
+char aux_ack[10];
 
 struct package {
   uint16_t seq;
@@ -28,10 +28,10 @@ typedef struct package Package;
 Package data;
 
 
+
+
 void setup() {
   Serial.begin(115200);
-  delay(1000);
-  counter = 1;
   myRadio.begin();  
   myRadio.setChannel(115); 
   myRadio.setPALevel(RF24_PA_MAX);
@@ -42,24 +42,30 @@ void setup() {
   for (int i = 0; i<= 29000; i++){
     array_file[i] = 'a' + (rand()%26);
   }
-
-  myRadio.openWritingPipe(addresses[0]);
+  myRadio.openReadingPipe(1, addresses[1]);
+  myRadio.startListening();
   
 }
 
 void loop() {  
  if(role == 1) {
-    counter = counter + 1;
-   
-    memset(data.payload, 0, sizeof(data.payload));
+  for (counter = 1; counter <= 1000; counter++){
+    if(myRadio.available() > 0 ){
+      while(myRadio.available()){
+        myRadio.read(&aux_ack, sizeof(aux_ack));
+        Serial.print(aux_ack);
+      }
+      elapsedss_time = micros() - start_time;
+      Serial.print("\nElapsed: ");
+      Serial.println(elapsedss_time);
+    }
+ 
+    delay(10);
+    myRadio.stopListening();
     data.seq = counter;
     memcpy(data.payload, array_file, sizeof(char)*29);
-    strncpy(array_file, array_file + (counter * 29), sizeof(array_file) - (counter*29));
+    strncpy(array_file, array_file + 29, sizeof(array_file) - 29);
     data.crc = genCRC((uint8_t*)&data.payload, sizeof(data.payload));
-
-    start_time = micros();
-    myRadio.write(&data, sizeof(data)); 
-    
     Serial.print("\nEnviado");
     Serial.print("\nPacote:");
     Serial.print(data.seq);
@@ -67,16 +73,26 @@ void loop() {
     //Serial.println((char*)data.payload);
     Serial.print("CRC: ");
     Serial.println(data.crc);
-    unsigned long elapsedTime = micros() - start_time;
-    Serial.print("Elapsed Time:  ");
-    Serial.print(elapsedTime);
-    Serial.println(" microssegundos");
-   
-    delay(100);
-  
+    
+    start_time = micros();
+    myRadio.openWritingPipe(addresses[0]);
+    myRadio.write(&data, sizeof(data)); 
+    myRadio.openReadingPipe(1, addresses[1]);
+    myRadio.startListening(); 
+    
     if(counter == 1000){
-      while(1){}
+      role = 0;
+      if(myRadio.available() > 0 ){
+      while(myRadio.available()){
+        myRadio.read(&aux_ack, sizeof(aux_ack));
+        Serial.print(aux_ack);
+      }
+      elapsedss_time = micros() - start_time;
+      Serial.print("\nElapsed: ");
+      Serial.println(elapsedss_time);
     }
+    }
+  }
 
  }
 
@@ -86,10 +102,10 @@ void loop() {
   if( Serial.available() ){
     char c = toupper(Serial.read());
     if( c == 'T' && role == 0 ){
-      Serial.print(F("*** CHANGING TO TRANSMIT ROLE -- PRESS 'S' TO STOP"));
+      Serial.print(F("* CHANGING TO TRANSMIT ROLE -- PRESS 'S' TO STOPP"));
       role = 1;
     }else if( c == 'S' && role == 1){
-      Serial.print(F("*** Transmission Stopped - PRESS 'T' TO SWITCH BACK"));
+      Serial.print(F("* Transmission Stopped - PRESS 'T' TO SWITCH BACK"));
       role = 0;
     }
   }

@@ -1,0 +1,6 @@
+{
+    "java.project.referencedLibraries": [
+        "lib/**/*.jar",
+        "/home/moutinho/Transferências/jSerialComm-2.6.2.jar"
+    ]
+}
